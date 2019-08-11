@@ -1,6 +1,9 @@
 package main
 
-import "fmt"
+import (
+	"fmt"
+	"strings"
+)
 
 const (
 	testDatabase    = "test"
@@ -10,6 +13,7 @@ const (
 func testServer() *server {
 	config := defaultConfig
 	config.databaseURL = fmt.Sprintf(testDatabaseURL, "template1")
+	config.redisURL = strings.Replace(defaultConfig.redisURL, "@redis", "@localhost", 1)
 
 	s, err := newServer(config)
 	if err != nil {

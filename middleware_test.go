@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 	"time"
 
@@ -16,7 +17,9 @@ import (
 func TestMiddleware(t *testing.T) {
 	r := require.New(t)
 
-	opts, err := redis.ParseURL(defaultConfig.redisURL)
+	redisURL := strings.Replace(defaultConfig.redisURL, "@redis", "@localhost", 1)
+
+	opts, err := redis.ParseURL(redisURL)
 	r.Nil(err)
 
 	conn := redis.NewClient(opts)
