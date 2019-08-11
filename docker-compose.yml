@@ -1,0 +1,23 @@
+version: '3.5'
+services:
+#  server:
+#    image: 'gomezjdaniel/backend-test'
+#    ports:
+#      - '1323:1323'
+#    links:
+#      - postgres
+  postgres:
+    image: 'postgres:11'
+    volumes:
+      - './.data/postgresql/data:/var/lib/postgresql/data'
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - '5432:5432'
+  redis:
+    image: 'redis:5.0'
+    ports:
+      - "6379:6379"
+    volumes:
+      - './.data/redis:/data'
