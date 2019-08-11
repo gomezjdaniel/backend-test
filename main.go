@@ -9,8 +9,8 @@ import (
 var (
 	conf          = config{}
 	defaultConfig = config{
-		databaseURL:  "postgres://postgres:postgres@localhost:5432/postgres?sslmode=disable",
-		redisURL:     "redis://:@localhost:6379/0",
+		databaseURL:  "postgres://postgres:postgres@postgres:5432/postgres?sslmode=disable",
+		redisURL:     "redis://:@redis:6379/0",
 		address:      ":1323",
 		level:        1,
 		disableCache: false,

@@ -1,13 +1,14 @@
 version: '3.5'
 services:
-#  server:
-#    image: 'gomezjdaniel/backend-test'
-#    ports:
-#      - '1323:1323'
-#    links:
-#      - postgres
+  server:
+    image: 'gomezjdaniel/backend-test'
+    ports:
+      - '1323:1323'
+    links:
+      - postgres
   postgres:
     image: 'postgres:11'
+    hostname: postgres
     volumes:
       - './.data/postgresql/data:/var/lib/postgresql/data'
     environment:

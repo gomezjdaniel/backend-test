@@ -16,7 +16,7 @@ go.test:
 	go test -v $(GO_TEST_FILES) $(GO_FILES)
 
 run: build
-	./bin/backend-test --log-level=0
+	./bin/backend-test --log-level=0 --database-url="postgres://postgres:postgres@localhost:5432/postgres?sslmode=disable" --redis-url="redis://:@localhost:6379/0"
 
 build:
 	GOOS=$(shell go env GOOS) GOARCH=$(shell go env GOARCH) go build -o ./bin/backend-test
