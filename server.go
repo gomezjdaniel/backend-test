@@ -88,18 +88,6 @@ func newServer(config config, opts ...Option) (*server, error) {
 		return nil, fmt.Errorf("Failed to connect to redis instance: %s", err)
 	}
 
-	/*s.web.GET("/test-cache", func(c echo.Context) error {
-		return c.JSON(http.StatusOK, &struct {
-			Timestamp int64
-		}{
-			Timestamp: time.Now().UTC().Unix(),
-		})
-	}, cache(redisConn, time.Duration(time.Second)*15))
-
-	s.web.POST("/test-cache", func(c echo.Context) error {
-		return c.NoContent(http.StatusOK)
-	}, invalidate(redisConn))*/
-
 	s.web.POST("/players", s.createPlayer)
 	s.web.GET("/players", s.listPlayers, cache(s.config.disableCache, redisConn, time.Duration(time.Second)*5))
 	s.web.PUT("/players/:player_id", s.updatePlayer, playerID)
