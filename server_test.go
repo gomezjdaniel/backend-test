@@ -3,6 +3,8 @@ package main
 import (
 	"fmt"
 	"strings"
+
+	"github.com/apex/log"
 )
 
 const (
@@ -17,22 +19,22 @@ func testServer() *server {
 
 	s, err := newServer(config)
 	if err != nil {
-		panic(err)
+		log.WithError(err).Fatal("Failed to create server")
 	}
 
 	_, err = s.db.Exec(fmt.Sprintf("DROP DATABASE IF EXISTS %s", testDatabase))
 	if err != nil {
-		panic(err)
+		log.WithError(err).Fatal("Failed to drop test database")
 	}
 
 	_, err = s.db.Exec(fmt.Sprintf("CREATE DATABASE %s", testDatabase))
 	if err != nil {
-		panic(err)
+		log.WithError(err).Fatal("Failed to create test database")
 	}
 
 	err = s.db.Close()
 	if err != nil {
-		panic(err)
+		log.WithError(err).Fatal("Failed to close `template1` database connection")
 	}
 
 	config.databaseURL = fmt.Sprintf(testDatabaseURL, testDatabase)
@@ -40,12 +42,12 @@ func testServer() *server {
 
 	s, err = newServer(config)
 	if err != nil {
-		panic(err)
+		log.WithError(err).Fatal("Failed to create server")
 	}
 
 	err = s.init()
 	if err != nil {
-		panic(err)
+		log.WithError(err).Fatal("Failed to create database schema")
 	}
 
 	return s
