@@ -33,104 +33,69 @@ func TestMiddleware(t *testing.T) {
 
 	web := echo.New()
 	web.GET("/test", func(c echo.Context) error {
-		defer func() {
-			counter = counter + 1
-		}()
-
 		return c.String(http.StatusOK, fmt.Sprintf("%d", counter))
 	}, cache(false, conn, ttl))
 	web.POST("/test", func(c echo.Context) error {
+		counter = counter + 1
 		return c.NoContent(http.StatusOK)
 	}, invalidate(false, conn))
 
-	{
-		rec := httptest.NewRecorder()
+	for _, tc := range []struct {
+		Name         string
+		Method       string
+		ExpectedBody string
+		BeforeTest   func()
+	}{
+		{
+			Name:         "GET request",
+			Method:       "GET",
+			ExpectedBody: "0",
+		},
+		{
+			Name:         "GET request with cached response",
+			Method:       "GET",
+			ExpectedBody: "0",
+			BeforeTest: func() {
+				counter += 1
+			},
+		},
+		{
+			Name:         "GET request after cache entry expired",
+			Method:       "GET",
+			ExpectedBody: "1",
+			BeforeTest: func() {
+				time.Sleep(ttl)
+			},
+		},
+		{
+			Name:   "POST request to invalidate cache",
+			Method: "POST",
+		},
+		{
+			Name:         "GET request with cached response",
+			Method:       "GET",
+			ExpectedBody: "2",
+		},
+	} {
+		t.Run(tc.Name, func(t *testing.T) {
+			r := require.New(t)
 
-		req, err := http.NewRequest("GET", "/test", nil)
-		r.Nil(err)
+			if tc.BeforeTest != nil {
+				tc.BeforeTest()
+			}
 
-		web.ServeHTTP(rec, req)
+			req := httptest.NewRequest(tc.Method, "/test", nil)
+			rec := httptest.NewRecorder()
 
-		data, err := ioutil.ReadAll(rec.Result().Body)
-		r.Nil(err)
-		r.Equal("0", string(data))
-	}
+			web.ServeHTTP(rec, req)
 
-	{
-		rec := httptest.NewRecorder()
+			resp := rec.Result()
 
-		req, err := http.NewRequest("GET", "/test", nil)
-		r.Nil(err)
+			r.Equal(http.StatusOK, resp.StatusCode)
 
-		web.ServeHTTP(rec, req)
-
-		data, err := ioutil.ReadAll(rec.Result().Body)
-		r.Nil(err)
-		r.Equal("0", string(data))
-	}
-
-	{
-		rec := httptest.NewRecorder()
-
-		req, err := http.NewRequest("GET", "/test", nil)
-		r.Nil(err)
-
-		web.ServeHTTP(rec, req)
-
-		data, err := ioutil.ReadAll(rec.Result().Body)
-		r.Nil(err)
-		r.Equal("0", string(data))
-	}
-
-	time.Sleep(ttl)
-
-	{
-		rec := httptest.NewRecorder()
-
-		req, err := http.NewRequest("GET", "/test", nil)
-		r.Nil(err)
-
-		web.ServeHTTP(rec, req)
-
-		data, err := ioutil.ReadAll(rec.Result().Body)
-		r.Nil(err)
-		r.Equal("1", string(data))
-	}
-
-	{
-		rec := httptest.NewRecorder()
-
-		req, err := http.NewRequest("GET", "/test", nil)
-		r.Nil(err)
-
-		web.ServeHTTP(rec, req)
-
-		data, err := ioutil.ReadAll(rec.Result().Body)
-		r.Nil(err)
-		r.Equal("1", string(data))
-	}
-
-	// Invalidate cache.
-
-	{
-		rec := httptest.NewRecorder()
-
-		req, err := http.NewRequest("POST", "/test", nil)
-		r.Nil(err)
-
-		web.ServeHTTP(rec, req)
-	}
-
-	{
-		rec := httptest.NewRecorder()
-
-		req, err := http.NewRequest("GET", "/test", nil)
-		r.Nil(err)
-
-		web.ServeHTTP(rec, req)
-
-		data, err := ioutil.ReadAll(rec.Result().Body)
-		r.Nil(err)
-		r.Equal("2", string(data))
+			data, err := ioutil.ReadAll(resp.Body)
+			r.Nil(err)
+			r.Equal(tc.ExpectedBody, strings.TrimRight(string(data), "\n"))
+		})
 	}
 }
